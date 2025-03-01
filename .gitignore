@@ -1,0 +1,11 @@
+/kls_database
+
+# Gradle
+.gradle/
+build/
+/teaclient-loom
+
+# Nix
+.direnv
+result
+result-*

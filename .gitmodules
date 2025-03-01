@@ -1,0 +1,3 @@
+[submodule "architectury-loom"]
+	path = architectury-loom
+	url = https://github.com/EssentialGG/architectury-loom.git
