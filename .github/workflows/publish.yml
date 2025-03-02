@@ -1,0 +1,24 @@
+name: Publish
+on:
+  push:
+    branches: 
+      - 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: setup jdk
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+      - uses: actions/checkout@v4
+      - uses: gradle/wrapper-validation-action@v2
+      - name: Upload to Maven
+        run: |
+          ./gradlew applyPatches
+          ./gradlew teaclient-loom:publish --stacktrace
+        env:
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+          MAVEN_PASS: ${{ secrets.MAVEN_PASS }}
