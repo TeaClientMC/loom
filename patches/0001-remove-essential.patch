@@ -1,0 +1,951 @@
+From fdc218654dc70e84a8c1d3f8e7a86d54622565c8 Mon Sep 17 00:00:00 2001
+From: eveeifyeve <88671402+Eveeifyeve@users.noreply.github.com>
+Date: Sun, 2 Mar 2025 13:41:17 +1100
+Subject: [PATCH] remove-essential
+
+---
+ .github/workflows/publish.yml                      |  4 ++--
+ README.md                                          |  5 +----
+ bootstrap/test-project/build.gradle                |  2 +-
+ build.gradle                                       | 14 +++++++-------
+ .../java/net/fabricmc/loom/LoomGradlePlugin.java   |  6 +++---
+ .../providers/forge/MinecraftPatchedProvider.java  |  2 +-
+ .../fabricmc/loom/extension/LoomFilesBaseImpl.java |  2 +-
+ .../java/net/fabricmc/loom/util/Constants.java     |  2 +-
+ .../loom/test/integration/FabricAPITest.groovy     |  4 ++--
+ .../loom/test/integration/OfflineModeTest.groovy   |  2 +-
+ .../loom/test/util/GradleProjectTestTrait.groovy   |  2 +-
+ .../resources/projects/accesswidener/build.gradle  |  4 ++--
+ src/test/resources/projects/decompile/build.gradle |  2 +-
+ .../basic/build.gradle                             |  4 ++--
+ .../projmap/build.gradle                           |  4 ++--
+ .../dependencyResolutionManagement/settings.gradle |  4 ++--
+ .../resources/projects/forge/1206/build.gradle     |  4 ++--
+ .../projects/forge/accessTransformer/build.gradle  |  4 ++--
+ .../resources/projects/forge/aw2At/build.gradle    |  4 ++--
+ .../forge/externalModDependency/build.gradle       |  4 ++--
+ .../legacy/externalModDependency/build.gradle      |  4 ++--
+ .../projects/forge/legacyAw2AtMojmap/build.gradle  |  4 ++--
+ .../projects/forge/legacyAw2AtYarn/build.gradle    |  4 ++--
+ .../projects/forge/loggerConfig/build.gradle       |  2 +-
+ .../resources/projects/forge/simple/build.gradle   |  4 ++--
+ .../projects/forge/simpleMixinAp/build.gradle      |  4 ++--
+ .../projects/forge/singleJar/build.gradle          |  4 ++--
+ .../resources/projects/includedJars/build.gradle   |  2 +-
+ .../projects/interfaceInjection/build.gradle       |  2 +-
+ src/test/resources/projects/java16/build.gradle    |  2 +-
+ .../resources/projects/kotlin/build.gradle.kts     |  2 +-
+ src/test/resources/projects/legacy/build.gradle    |  2 +-
+ .../projects/localFileDependency/build.gradle      |  4 ++--
+ .../resources/projects/localRuntime/build.gradle   |  4 ++--
+ src/test/resources/projects/maven/build.gradle     |  2 +-
+ .../resources/projects/mavenLibrary/build.gradle   |  2 +-
+ .../resources/projects/minimalBase/build.gradle    |  2 +-
+ .../projects/mixinApAutoRefmap/build.gradle        |  4 ++--
+ .../resources/projects/mixinApSimple/build.gradle  |  4 ++--
+ .../resources/projects/modJavadoc/build.gradle     |  2 +-
+ .../resources/projects/mojangMappings/build.gradle |  4 ++--
+ .../projects/multi-mc-versions/build.gradle        |  4 ++--
+ .../resources/projects/multiproject/build.gradle   |  4 ++--
+ .../resources/projects/neoforge/1206/build.gradle  |  4 ++--
+ .../resources/projects/neoforge/1210/build.gradle  |  4 ++--
+ .../projects/neoforge/simple/build.gradle          |  4 ++--
+ src/test/resources/projects/parchment/build.gradle |  2 +-
+ .../resources/projects/reproducible/build.gradle   |  2 +-
+ .../resources/projects/runconfigs/build.gradle     |  2 +-
+ src/test/resources/projects/signed/build.gradle    |  2 +-
+ src/test/resources/projects/simple/build.gradle    |  4 ++--
+ .../resources/projects/splitSources/build.gradle   |  2 +-
+ .../projects/transitiveAccesswidener/build.gradle  |  2 +-
+ src/test/resources/projects/unpick/build.gradle    |  2 +-
+ 54 files changed, 89 insertions(+), 92 deletions(-)
+
+diff --git a/.github/workflows/publish.yml b/.github/workflows/publish.yml
+index aa33cb97..d3e333b6 100644
+--- a/.github/workflows/publish.yml
++++ b/.github/workflows/publish.yml
+@@ -33,5 +33,5 @@ jobs:
+       - name: Upload to Maven
+         run: ./gradlew publish --stacktrace
+         env:
+-          NEXUS_USER: ${{ secrets.NEXUS_USER }}
+-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
++          MAVEN_USER: ${{ secrets.MAVEN_USER }}
++          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+diff --git a/README.md b/README.md
+index 87f33d73..ab2b36ad 100644
+--- a/README.md
++++ b/README.md
+@@ -1,10 +1,7 @@
+ # Essential Loom
+ 
+ A fork of [Architectury Loom](https://github.com/architectury/architectury-loom/), primarily to support legacy forge versions
+-but with some other changes for our purposes. Used by [Essential Gradle Toolkit](https://github.com/EssentialGG/essential-gradle-toolkit/).
+-
+-Talk to us on [Discord](https://discord.gg/essential). Use the `#programmer-chat` channel for Essential Loom discussions.
+-Issues can be reported on Discord or using GitHub issues.
++but with some other changes for our purposes.
+ 
+ # Original Readme
+ 
+diff --git a/bootstrap/test-project/build.gradle b/bootstrap/test-project/build.gradle
+index 4093a6bf..c0f2aa65 100644
+--- a/bootstrap/test-project/build.gradle
++++ b/bootstrap/test-project/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom' version '0.13.local'
++	id 'net.teaclient.loom' version '0.13.local'
+ }
+ 
+ dependencies {
+diff --git a/build.gradle b/build.gradle
+index 4e48d53d..ab7d667a 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -49,7 +49,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+ 	}
+ }
+ 
+-group = "gg.essential"
++group = "net.teaclient"
+ def baseVersion = '1.6'
+ 
+ def ENV = System.getenv()
+@@ -298,7 +298,7 @@ codenarc {
+ gradlePlugin {
+ 	plugins {
+ 		fabricLoom {
+-			id = 'gg.essential.loom'
++			id = 'net.teaclient.loom'
+ 			implementationClass = 'net.fabricmc.loom.bootstrap.LoomGradlePluginBootstrap'
+ 		}
+ 	}
+@@ -343,13 +343,13 @@ import org.gradle.util.GradleVersion
+ 
+ publishing {
+ 	repositories {
+-		if (System.getenv("NEXUS_USER") != null) {
++		if (System.getenv("MAVEN_USER") != null) {
+ 			maven {
+-				url = "https://repo.sk1er.club/repository/maven-releases/"
+-				name = "nexus-public"
++				url = "https://maven.teaclient.net/releases"
++				name = "teaclient-public"
+ 				credentials {
+-					username = System.getenv("NEXUS_USER")
+-					password = System.getenv("NEXUS_PASSWORD")
++					username = System.getenv("MAVEN_USER")
++					password = System.getenv("MAVEN_PASSWORD")
+ 				}
+ 			}
+ 		}
+diff --git a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+index 377a203b..c08c159e 100644
+--- a/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
++++ b/src/main/java/net/fabricmc/loom/LoomGradlePlugin.java
+@@ -85,12 +85,12 @@ public class LoomGradlePlugin implements BootstrappedPlugin {
+ 		if (!loggedVersions.contains(LOOM_VERSION)) {
+ 			loggedVersions.add(LOOM_VERSION);
+ 			System.setProperty("loom.printed.logged", String.join(",", loggedVersions));
+-			project.getLogger().lifecycle("Essential Loom: " + LOOM_VERSION);
++			project.getLogger().lifecycle("TeaClient Loom: " + LOOM_VERSION);
+ 
+ 			if (Constants.PLUGIN_BETA) {
+-				project.getLogger().lifecycle("This version of Essential Loom is in beta!");
++				project.getLogger().lifecycle("This version of TeaClient Loom is in beta! any issues please report it here: https://github.com/TeaClientMC/loom/issues/new?template=bug-report.yml");
+ 			} else if (Constants.PLUGIN_DEPRECATED) {
+-				project.getLogger().lifecycle("You are using an outdated version of Essential Loom! This version will not receive any support, please consider updating!");
++				project.getLogger().lifecycle("You are using an outdated version of TeaClient Loom! This version will not receive any support, please consider updating!");
+ 			}
+ 		}
+ 
+diff --git a/src/main/java/net/fabricmc/loom/configuration/providers/forge/MinecraftPatchedProvider.java b/src/main/java/net/fabricmc/loom/configuration/providers/forge/MinecraftPatchedProvider.java
+index 3cafafa0..c9e5b70b 100644
+--- a/src/main/java/net/fabricmc/loom/configuration/providers/forge/MinecraftPatchedProvider.java
++++ b/src/main/java/net/fabricmc/loom/configuration/providers/forge/MinecraftPatchedProvider.java
+@@ -97,7 +97,7 @@ import net.fabricmc.tinyremapper.TinyRemapper;
+ 
+ public class MinecraftPatchedProvider {
+ 	private static final String LOOM_PATCH_VERSION_KEY = "Loom-Patch-Version";
+-	private static final String CURRENT_LOOM_PATCH_VERSION = "9+essential.1";
++	private static final String CURRENT_LOOM_PATCH_VERSION = "9+teaclient.1";
+ 	private static final String NAME_MAPPING_SERVICE_PATH = "/inject/META-INF/services/cpw.mods.modlauncher.api.INameMappingService";
+ 
+ 	protected final Project project;
+diff --git a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
+index b8ba0060..87c08269 100644
+--- a/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
++++ b/src/main/java/net/fabricmc/loom/extension/LoomFilesBaseImpl.java
+@@ -50,7 +50,7 @@ public abstract class LoomFilesBaseImpl implements LoomFiles {
+ 
+ 	@Override
+ 	public File getUserCache() {
+-		return createFile(getGradleUserHomeDir(), "caches" + File.separator + "essential-loom");
++		return createFile(getGradleUserHomeDir(), "caches" + File.separator + "teaclient-loom");
+ 	}
+ 
+ 	@Override
+diff --git a/src/main/java/net/fabricmc/loom/util/Constants.java b/src/main/java/net/fabricmc/loom/util/Constants.java
+index 47225817..2f7dd7f9 100644
+--- a/src/main/java/net/fabricmc/loom/util/Constants.java
++++ b/src/main/java/net/fabricmc/loom/util/Constants.java
+@@ -27,7 +27,7 @@ package net.fabricmc.loom.util;
+ import org.objectweb.asm.Opcodes;
+ 
+ public class Constants {
+-	public static final String PLUGIN_ID = "gg.essential.loom";
++	public static final String PLUGIN_ID = "net.teaclient.loom";
+ 	public static final boolean PLUGIN_BETA = false;
+ 	public static final boolean PLUGIN_DEPRECATED = false;
+ 	public static final String LIBRARIES_BASE = "https://libraries.minecraft.net/";
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/FabricAPITest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/FabricAPITest.groovy
+index c4f49d11..1d99005d 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/FabricAPITest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/FabricAPITest.groovy
+@@ -62,8 +62,8 @@ class FabricAPITest extends Specification implements GradleProjectTestTrait {
+ 
+ 		// Change the plugin used
+ 		gradle.buildGradle.text = gradle.buildGradle.text
+-				.replace('id "fabric-loom" version "1.4.1"', 'id "gg.essential.loom"')
+-				.replace('"fabric-loom"', '"gg.essential.loom"') + mixinApPatch
++				.replace('id "fabric-loom" version "1.4.1"', 'id "net.teaclient.loom"')
++				.replace('"fabric-loom"', '"net.teaclient.loom"') + mixinApPatch
+ 
+ 		def minecraftVersion = "23w51b"
+ 		def server = ServerRunner.create(gradle.projectDir, minecraftVersion)
+diff --git a/src/test/groovy/net/fabricmc/loom/test/integration/OfflineModeTest.groovy b/src/test/groovy/net/fabricmc/loom/test/integration/OfflineModeTest.groovy
+index b4d2bd73..3098a8a5 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/integration/OfflineModeTest.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/integration/OfflineModeTest.groovy
+@@ -58,7 +58,7 @@ class OfflineModeTest extends Specification implements GradleProjectTestTrait {
+ 		def projectHash = result1.output.split("%%")[1]
+ 
+ 		// Create a dummy lock file to ensure that the loom cache is rebuilt on the next run
+-		def lockFile = new File(gradle.gradleHomeDir, "caches/essential-loom/.${projectHash}.lock")
++		def lockFile = new File(gradle.gradleHomeDir, "caches/teaclient-loom/.${projectHash}.lock")
+ 		lockFile.text = "12345"
+ 
+ 		// Run with --offline to ensure that nothing is downloaded.
+diff --git a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
+index 3f5ae073..8c87d168 100644
+--- a/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
++++ b/src/test/groovy/net/fabricmc/loom/test/util/GradleProjectTestTrait.groovy
+@@ -238,7 +238,7 @@ trait GradleProjectTestTrait {
+ 		}
+ 
+ 		File getGeneratedSources(String mappings, String jarType = "merged") {
+-			return new File(getGradleHomeDir(), "caches/essential-loom/minecraftMaven/net/minecraft/minecraft-${jarType}/${mappings}/minecraft-${jarType}-${mappings}-sources.jar")
++			return new File(getGradleHomeDir(), "caches/teaclient-loom/minecraftMaven/net/minecraft/minecraft-${jarType}/${mappings}/minecraft-${jarType}-${mappings}-sources.jar")
+ 		}
+ 
+ 		File getGeneratedLocalSources(String mappings) {
+diff --git a/src/test/resources/projects/accesswidener/build.gradle b/src/test/resources/projects/accesswidener/build.gradle
+index 264b3c71..b605a1cf 100644
+--- a/src/test/resources/projects/accesswidener/build.gradle
++++ b/src/test/resources/projects/accesswidener/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -9,7 +9,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/decompile/build.gradle b/src/test/resources/projects/decompile/build.gradle
+index 497fe0db..ca9e9706 100644
+--- a/src/test/resources/projects/decompile/build.gradle
++++ b/src/test/resources/projects/decompile/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ }
+ 
+ dependencies {
+diff --git a/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle b/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
+index 8964b2de..197239ef 100644
+--- a/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
++++ b/src/test/resources/projects/dependencyResolutionManagement/basic/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -9,7 +9,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle b/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
+index e15cf07f..102b811d 100644
+--- a/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
++++ b/src/test/resources/projects/dependencyResolutionManagement/projmap/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -9,7 +9,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle b/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
+index 862ae6b0..7508c6cf 100644
+--- a/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
++++ b/src/test/resources/projects/dependencyResolutionManagement/settings.gradle
+@@ -1,11 +1,11 @@
+ pluginManagement {
+ 	plugins {
+-		id 'gg.essential.loom'
++		id 'net.teaclient.loom'
+ 	}
+ }
+ 
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ }
+ 
+ dependencyResolutionManagement {
+diff --git a/src/test/resources/projects/forge/1206/build.gradle b/src/test/resources/projects/forge/1206/build.gradle
+index c06cd29e..d899da8a 100644
+--- a/src/test/resources/projects/forge/1206/build.gradle
++++ b/src/test/resources/projects/forge/1206/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -21,7 +21,7 @@ def forgeVersion = "@FORGEVERSION@"
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/forge/accessTransformer/build.gradle b/src/test/resources/projects/forge/accessTransformer/build.gradle
+index dee89906..8a6fb930 100644
+--- a/src/test/resources/projects/forge/accessTransformer/build.gradle
++++ b/src/test/resources/projects/forge/accessTransformer/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -18,7 +18,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/forge/aw2At/build.gradle b/src/test/resources/projects/forge/aw2At/build.gradle
+index 5e14fde5..3d09ad80 100644
+--- a/src/test/resources/projects/forge/aw2At/build.gradle
++++ b/src/test/resources/projects/forge/aw2At/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -29,7 +29,7 @@ loom {
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/forge/externalModDependency/build.gradle b/src/test/resources/projects/forge/externalModDependency/build.gradle
+index e2734f1b..d7d59e16 100644
+--- a/src/test/resources/projects/forge/externalModDependency/build.gradle
++++ b/src/test/resources/projects/forge/externalModDependency/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -18,7 +18,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ 	maven {
+diff --git a/src/test/resources/projects/forge/legacy/externalModDependency/build.gradle b/src/test/resources/projects/forge/legacy/externalModDependency/build.gradle
+index 403a361a..49dd7cbe 100644
+--- a/src/test/resources/projects/forge/legacy/externalModDependency/build.gradle
++++ b/src/test/resources/projects/forge/legacy/externalModDependency/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -20,7 +20,7 @@ loom.forge.pack200Provider = new dev.architectury.pack200.java.Pack200Adapter()
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ 	maven {
+diff --git a/src/test/resources/projects/forge/legacyAw2AtMojmap/build.gradle b/src/test/resources/projects/forge/legacyAw2AtMojmap/build.gradle
+index 125becb4..cd35e52e 100644
+--- a/src/test/resources/projects/forge/legacyAw2AtMojmap/build.gradle
++++ b/src/test/resources/projects/forge/legacyAw2AtMojmap/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -29,7 +29,7 @@ loom {
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/forge/legacyAw2AtYarn/build.gradle b/src/test/resources/projects/forge/legacyAw2AtYarn/build.gradle
+index 927a591e..58750b3a 100644
+--- a/src/test/resources/projects/forge/legacyAw2AtYarn/build.gradle
++++ b/src/test/resources/projects/forge/legacyAw2AtYarn/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -29,7 +29,7 @@ loom {
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/forge/loggerConfig/build.gradle b/src/test/resources/projects/forge/loggerConfig/build.gradle
+index c0de33d1..ce6a8a64 100644
+--- a/src/test/resources/projects/forge/loggerConfig/build.gradle
++++ b/src/test/resources/projects/forge/loggerConfig/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ }
+ 
+ base {
+diff --git a/src/test/resources/projects/forge/simple/build.gradle b/src/test/resources/projects/forge/simple/build.gradle
+index cc5279ab..ac2aad0d 100644
+--- a/src/test/resources/projects/forge/simple/build.gradle
++++ b/src/test/resources/projects/forge/simple/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -23,7 +23,7 @@ def forgeVersion = "@FORGEVERSION@"
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ 
+diff --git a/src/test/resources/projects/forge/simpleMixinAp/build.gradle b/src/test/resources/projects/forge/simpleMixinAp/build.gradle
+index 586fd69d..9bfe7b97 100644
+--- a/src/test/resources/projects/forge/simpleMixinAp/build.gradle
++++ b/src/test/resources/projects/forge/simpleMixinAp/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -27,7 +27,7 @@ loom {
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/forge/singleJar/build.gradle b/src/test/resources/projects/forge/singleJar/build.gradle
+index a6477a96..44caf83d 100644
+--- a/src/test/resources/projects/forge/singleJar/build.gradle
++++ b/src/test/resources/projects/forge/singleJar/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -29,7 +29,7 @@ def forgeVersion = "@FORGEVERSION@"
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/includedJars/build.gradle b/src/test/resources/projects/includedJars/build.gradle
+index 0a6eb60f..ea732172 100644
+--- a/src/test/resources/projects/includedJars/build.gradle
++++ b/src/test/resources/projects/includedJars/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ }
+ 
+ repositories {
+diff --git a/src/test/resources/projects/interfaceInjection/build.gradle b/src/test/resources/projects/interfaceInjection/build.gradle
+index 27fe6ef5..2a21e197 100644
+--- a/src/test/resources/projects/interfaceInjection/build.gradle
++++ b/src/test/resources/projects/interfaceInjection/build.gradle
+@@ -1,7 +1,7 @@
+ // This is used by a range of tests that append to this file before running the gradle tasks.
+ // Can be used for tests that require minimal custom setup
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/java16/build.gradle b/src/test/resources/projects/java16/build.gradle
+index 566bf229..69bc7951 100644
+--- a/src/test/resources/projects/java16/build.gradle
++++ b/src/test/resources/projects/java16/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/kotlin/build.gradle.kts b/src/test/resources/projects/kotlin/build.gradle.kts
+index 41d8ee1b..ad5749dd 100644
+--- a/src/test/resources/projects/kotlin/build.gradle.kts
++++ b/src/test/resources/projects/kotlin/build.gradle.kts
+@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
+ plugins {
+ 	kotlin("jvm") version "1.9.22"
+ 	kotlin("plugin.serialization") version "1.9.22"
+-    id("gg.essential.loom")
++    id("net.teaclient.loom")
+ 	`maven-publish`
+ }
+ 
+diff --git a/src/test/resources/projects/legacy/build.gradle b/src/test/resources/projects/legacy/build.gradle
+index 4e11cdeb..b9fe7565 100644
+--- a/src/test/resources/projects/legacy/build.gradle
++++ b/src/test/resources/projects/legacy/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ }
+ 
+ version = project.mod_version
+diff --git a/src/test/resources/projects/localFileDependency/build.gradle b/src/test/resources/projects/localFileDependency/build.gradle
+index 8a07c78e..a7344b03 100644
+--- a/src/test/resources/projects/localFileDependency/build.gradle
++++ b/src/test/resources/projects/localFileDependency/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -9,7 +9,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ 	flatDir {
+diff --git a/src/test/resources/projects/localRuntime/build.gradle b/src/test/resources/projects/localRuntime/build.gradle
+index a2a13648..68551bb8 100644
+--- a/src/test/resources/projects/localRuntime/build.gradle
++++ b/src/test/resources/projects/localRuntime/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -9,7 +9,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/maven/build.gradle b/src/test/resources/projects/maven/build.gradle
+index c0e0208e..63ed8be3 100644
+--- a/src/test/resources/projects/maven/build.gradle
++++ b/src/test/resources/projects/maven/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/mavenLibrary/build.gradle b/src/test/resources/projects/mavenLibrary/build.gradle
+index b266a4e3..47763275 100644
+--- a/src/test/resources/projects/mavenLibrary/build.gradle
++++ b/src/test/resources/projects/mavenLibrary/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/minimalBase/build.gradle b/src/test/resources/projects/minimalBase/build.gradle
+index 42c1bfc4..f4118086 100644
+--- a/src/test/resources/projects/minimalBase/build.gradle
++++ b/src/test/resources/projects/minimalBase/build.gradle
+@@ -1,7 +1,7 @@
+ // This is used by a range of tests that append to this file before running the gradle tasks.
+ // Can be used for tests that require minimal custom setup
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/mixinApAutoRefmap/build.gradle b/src/test/resources/projects/mixinApAutoRefmap/build.gradle
+index fb2933bd..d41a8019 100644
+--- a/src/test/resources/projects/mixinApAutoRefmap/build.gradle
++++ b/src/test/resources/projects/mixinApAutoRefmap/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'com.github.johnrengelman.shadow' version '7.0.0'
+ 	id 'maven-publish'
+ }
+@@ -10,7 +10,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/mixinApSimple/build.gradle b/src/test/resources/projects/mixinApSimple/build.gradle
+index 14742c4c..265979b2 100644
+--- a/src/test/resources/projects/mixinApSimple/build.gradle
++++ b/src/test/resources/projects/mixinApSimple/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -9,7 +9,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/modJavadoc/build.gradle b/src/test/resources/projects/modJavadoc/build.gradle
+index 44aaa29a..bea11509 100644
+--- a/src/test/resources/projects/modJavadoc/build.gradle
++++ b/src/test/resources/projects/modJavadoc/build.gradle
+@@ -1,7 +1,7 @@
+ // This is used by a range of tests that append to this file before running the gradle tasks.
+ // Can be used for tests that require minimal custom setup
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/mojangMappings/build.gradle b/src/test/resources/projects/mojangMappings/build.gradle
+index 3b244617..a4bea32b 100644
+--- a/src/test/resources/projects/mojangMappings/build.gradle
++++ b/src/test/resources/projects/mojangMappings/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -9,7 +9,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/multi-mc-versions/build.gradle b/src/test/resources/projects/multi-mc-versions/build.gradle
+index 1ed63ae4..6ff3b3fd 100644
+--- a/src/test/resources/projects/multi-mc-versions/build.gradle
++++ b/src/test/resources/projects/multi-mc-versions/build.gradle
+@@ -2,7 +2,7 @@ import groovy.json.JsonSlurper
+ 
+ plugins {
+ 	id "java"
+-	id 'gg.essential.loom' apply false
++	id 'net.teaclient.loom' apply false
+ }
+ 
+ allprojects {
+@@ -19,7 +19,7 @@ def getMappingVersion(String mcVersion) {
+ }
+ 
+ subprojects {
+-	apply plugin: "gg.essential.loom"
++	apply plugin: "net.teaclient.loom"
+ 
+ 	base {
+ 		archivesName = rootProject.name + "-" + project.name
+diff --git a/src/test/resources/projects/multiproject/build.gradle b/src/test/resources/projects/multiproject/build.gradle
+index 122a612a..117e3015 100644
+--- a/src/test/resources/projects/multiproject/build.gradle
++++ b/src/test/resources/projects/multiproject/build.gradle
+@@ -1,11 +1,11 @@
+ plugins {
+ 	id "java"
+ 	id "java-library"
+-	id 'gg.essential.loom' apply false
++	id 'net.teaclient.loom' apply false
+ }
+ 
+ allprojects {
+-	apply plugin: "gg.essential.loom"
++	apply plugin: "net.teaclient.loom"
+ 
+ 	version = "1.0.0"
+ 
+diff --git a/src/test/resources/projects/neoforge/1206/build.gradle b/src/test/resources/projects/neoforge/1206/build.gradle
+index 62eff2e8..30c26708 100644
+--- a/src/test/resources/projects/neoforge/1206/build.gradle
++++ b/src/test/resources/projects/neoforge/1206/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -21,7 +21,7 @@ def neoforgeVersion = "@NEOFORGEVERSION@"
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ 	maven { url "https://maven.neoforged.net/releases/" }
+diff --git a/src/test/resources/projects/neoforge/1210/build.gradle b/src/test/resources/projects/neoforge/1210/build.gradle
+index 62eff2e8..30c26708 100644
+--- a/src/test/resources/projects/neoforge/1210/build.gradle
++++ b/src/test/resources/projects/neoforge/1210/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -21,7 +21,7 @@ def neoforgeVersion = "@NEOFORGEVERSION@"
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ 	maven { url "https://maven.neoforged.net/releases/" }
+diff --git a/src/test/resources/projects/neoforge/simple/build.gradle b/src/test/resources/projects/neoforge/simple/build.gradle
+index a049bbea..cec6eb63 100644
+--- a/src/test/resources/projects/neoforge/simple/build.gradle
++++ b/src/test/resources/projects/neoforge/simple/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -21,7 +21,7 @@ def neoforgeVersion = "@NEOFORGEVERSION@"
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ 	maven { url "https://maven.neoforged.net/releases/" }
+diff --git a/src/test/resources/projects/parchment/build.gradle b/src/test/resources/projects/parchment/build.gradle
+index ae2510a5..ac1967c6 100644
+--- a/src/test/resources/projects/parchment/build.gradle
++++ b/src/test/resources/projects/parchment/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ }
+ 
+ repositories {
+diff --git a/src/test/resources/projects/reproducible/build.gradle b/src/test/resources/projects/reproducible/build.gradle
+index 09eefebf..51c05a8d 100644
+--- a/src/test/resources/projects/reproducible/build.gradle
++++ b/src/test/resources/projects/reproducible/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/runconfigs/build.gradle b/src/test/resources/projects/runconfigs/build.gradle
+index 38448567..a8e6ee06 100644
+--- a/src/test/resources/projects/runconfigs/build.gradle
++++ b/src/test/resources/projects/runconfigs/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ }
+ 
+ loom {
+diff --git a/src/test/resources/projects/signed/build.gradle b/src/test/resources/projects/signed/build.gradle
+index 703a8959..274d1adf 100644
+--- a/src/test/resources/projects/signed/build.gradle
++++ b/src/test/resources/projects/signed/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ 	id 'signing'
+ }
+diff --git a/src/test/resources/projects/simple/build.gradle b/src/test/resources/projects/simple/build.gradle
+index 0b46446e..29b7c792 100644
+--- a/src/test/resources/projects/simple/build.gradle
++++ b/src/test/resources/projects/simple/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+@@ -9,7 +9,7 @@ group = project.maven_group
+ repositories {
+ 	// Add repositories to retrieve artifacts from in here.
+ 	// You should only use this when depending on other mods because
+-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
++	// Loom adds the teaclient maven repositories to download Minecraft and libraries from automatically.
+ 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+ 	// for more information about repositories.
+ }
+diff --git a/src/test/resources/projects/splitSources/build.gradle b/src/test/resources/projects/splitSources/build.gradle
+index be76fd00..a6a40f36 100644
+--- a/src/test/resources/projects/splitSources/build.gradle
++++ b/src/test/resources/projects/splitSources/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom' version '0.12.local'
++	id 'net.teaclient.loom' version '0.12.local'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/transitiveAccesswidener/build.gradle b/src/test/resources/projects/transitiveAccesswidener/build.gradle
+index 44aaa29a..bea11509 100644
+--- a/src/test/resources/projects/transitiveAccesswidener/build.gradle
++++ b/src/test/resources/projects/transitiveAccesswidener/build.gradle
+@@ -1,7 +1,7 @@
+ // This is used by a range of tests that append to this file before running the gradle tasks.
+ // Can be used for tests that require minimal custom setup
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ 	id 'maven-publish'
+ }
+ 
+diff --git a/src/test/resources/projects/unpick/build.gradle b/src/test/resources/projects/unpick/build.gradle
+index 21b8da1e..28bad483 100644
+--- a/src/test/resources/projects/unpick/build.gradle
++++ b/src/test/resources/projects/unpick/build.gradle
+@@ -1,5 +1,5 @@
+ plugins {
+-	id 'gg.essential.loom'
++	id 'net.teaclient.loom'
+ }
+ 
+ dependencies {
+-- 
+2.47.1
+
