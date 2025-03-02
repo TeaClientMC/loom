@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🐛 Bugs from the Actual Client
+    url: https://teaclient.net/support
+    about: Our Support Requests for the actual client made here. 
+  - name: 💬 Ask a Question
+    url: https://teaclient.net/discord
+    about: Join our Discord server for questions, dev support requests or just to chat.
